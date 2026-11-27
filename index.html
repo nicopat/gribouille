@@ -543,7 +543,13 @@
         renderTimer();
   }
   function toggleTimer() { running ? pause() : start(); }
-  timerEl.addEventListener("click", function () { unlockAudio(); toggleTimer(); });
+  // Toucher le minuteur ne sert qu'à mettre en pause / reprendre une manche lancée par « Nouveau mot »
+  timerEl.addEventListener("click", function () {
+    var midRound = remainingMs > 0 && remainingMs < duration * 1000;
+    if (!running && !midRound) return;
+    unlockAudio();
+    toggleTimer();
+  });
 
   function timeUp() {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
