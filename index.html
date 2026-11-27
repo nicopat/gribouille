@@ -190,7 +190,7 @@
   .btn-soft { background: var(--surface-2); color: var(--text); }
   .btn-danger { background: var(--danger); color: #1f1c1c; }
 
-  .controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+  .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
   .btn-big { min-height: 52px; font-size: 19px; width: 100%; }
 
   /* ---------- Feuilles / dialogues ---------- */
@@ -281,7 +281,6 @@
   </header>
 
   <main class="stage" id="stage" aria-live="polite">
-    <div class="level-badge" id="levelBadge">Facile</div>
     <p class="word placeholder" id="word">Appuie sur « Nouveau mot » pour commencer</p>
     <div class="done-box">
       <p>Tous les mots de ce niveau ont été joués !</p>
@@ -297,7 +296,6 @@
     </div>
     <div class="controls">
       <button class="btn btn-accent" id="startBtn">Démarrer</button>
-      <button class="btn btn-soft" id="resetBtn">Reset</button>
     </div>
     <button class="btn btn-primary btn-big" id="newWordBtn">Nouveau mot</button>
   </footer>
@@ -441,7 +439,7 @@
   var wakeEnabled = load("wake", true) !== false;
 
   var $ = function (id) { return document.getElementById(id); };
-  var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining"), badgeEl = $("levelBadge");
+  var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining");
   var timerEl = $("timer"), startBtn = $("startBtn");
 
   /* ================= Mots ================= */
@@ -482,7 +480,6 @@
     document.querySelectorAll(".tab").forEach(function (t) {
       t.setAttribute("aria-selected", String(t.dataset.level === lvl));
     });
-    badgeEl.textContent = LEVEL_NAMES[lvl];
     showPlaceholder();
     resetTimer();
     updateRemaining();
@@ -540,7 +537,6 @@
         renderTimer();
   }
   startBtn.addEventListener("click", function () { running ? pause() : start(); });
-  $("resetBtn").addEventListener("click", resetTimer);
 
   function timeUp() {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
