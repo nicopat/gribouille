@@ -165,6 +165,8 @@
   .timer-row { display: flex; align-items: center; gap: 10px; }
   .timer {
     flex: 1;
+    cursor: pointer;
+    touch-action: manipulation;
     font-size: clamp(56px, 20vw, 88px);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
@@ -472,6 +474,7 @@
     void wordEl.offsetWidth; // relance l'animation
     wordEl.className = "word pop";
     wordEl.textContent = w.charAt(0).toUpperCase() + w.slice(1);
+    start();
     updateRemaining();
   }
   function setLevel(lvl) {
@@ -536,7 +539,9 @@
     remainingMs = duration * 1000;
         renderTimer();
   }
-  startBtn.addEventListener("click", function () { running ? pause() : start(); });
+  function toggleTimer() { running ? pause() : start(); }
+  startBtn.addEventListener("click", toggleTimer);
+  timerEl.addEventListener("click", toggleTimer);
 
   function timeUp() {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
