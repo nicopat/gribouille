@@ -104,7 +104,7 @@
 
   /* ---------- Centre ---------- */
   .stage {
-    flex: 1;
+    flex: 1 1 0;
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -131,8 +131,8 @@
     font-weight: 800;
     line-height: 1.1;
     margin: 0;
-    overflow-wrap: anywhere;
-    hyphens: auto;
+    overflow-wrap: normal;
+    hyphens: manual;
     max-width: 100%;
   }
   .word.placeholder { font-size: clamp(22px, 6vw, 30px); font-weight: 600; color: var(--muted); }
@@ -149,20 +149,13 @@
   .stage.done .done-box { display: flex; }
 
   /* ---------- Bas ---------- */
-  .bottom { display: flex; flex-direction: column; gap: 10px; }
-  .timer-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
-  .play-btn {
-    flex: none; width: 52px; height: 52px; border: 0; border-radius: 50%;
-    background: var(--surface-2); color: var(--text);
-    display: grid; place-items: center;
-    transition: transform .1s ease, background-color .25s ease;
-  }
-  .play-btn:active { transform: scale(.92); }
+  .bottom { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+  .timer-row { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
   .timer {
     flex: none;
     cursor: pointer;
     touch-action: manipulation;
-    font-size: clamp(56px, 20vw, 88px);
+    font-size: min(40vw, 21vh, 230px);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     text-align: center;
@@ -259,7 +252,6 @@
   .switch-row[aria-checked="true"] .knob::after { transform: translateX(22px); }
 
   @media (max-height: 600px) {
-    .timer { font-size: 52px; }
     .btn-big { min-height: 48px; font-size: 18px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -291,7 +283,6 @@
   <footer class="bottom">
     <div class="timer-row">
       <div class="timer" id="timer" role="timer" aria-live="off">1:00</div>
-      <button class="play-btn" id="playBtn" aria-label="Démarrer"></button>
     </div>
     <button class="btn btn-primary btn-big" id="newWordBtn">Nouveau mot</button>
   </footer>
@@ -436,9 +427,7 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining");
-  var timerEl = $("timer"), playBtn = $("playBtn");
-  var ICON_PAUSE = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>';
-  var ICON_PLAY = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>';
+  var timerEl = $("timer");
 
   /* ================= Mots ================= */
   function remainingWords(lvl) {
@@ -452,6 +441,7 @@
   function showPlaceholder() {
     stageEl.classList.remove("done");
     wordEl.className = "word placeholder";
+    wordEl.style.fontSize = "";
     wordEl.textContent = "Appuie sur « Nouveau mot » pour commencer";
   }
   function newWord() {
@@ -470,9 +460,21 @@
     void wordEl.offsetWidth; // relance l'animation
     wordEl.className = "word pop";
     wordEl.textContent = w.charAt(0).toUpperCase() + w.slice(1);
+    fitWord();
     start();
     updateRemaining();
   }
+  // Réduit la taille du mot s'il ne tient pas dans la carte (sans couper les mots)
+  function fitWord() {
+    wordEl.style.fontSize = "";
+    var size = parseFloat(getComputedStyle(wordEl).fontSize);
+    var maxW = stageEl.clientWidth - 32, maxH = stageEl.clientHeight - 60;
+    while (size > 22 && (wordEl.scrollWidth > maxW || wordEl.offsetHeight > maxH)) {
+      size -= 2;
+      wordEl.style.fontSize = size + "px";
+    }
+  }
+  window.addEventListener("resize", function () { if (!wordEl.classList.contains("placeholder")) fitWord(); });
   function setLevel(lvl) {
     level = lvl;
     save("level", lvl);
@@ -501,8 +503,6 @@
     timerEl.classList.toggle("warn", s <= 10);
     timerEl.classList.toggle("running", running);
     timerEl.classList.toggle("paused", !running && remainingMs > 0 && remainingMs < duration * 1000);
-    playBtn.innerHTML = running ? ICON_PAUSE : ICON_PLAY;
-    playBtn.setAttribute("aria-label", running ? "Pause" : "Démarrer");
   }
   function loop() {
     remainingMs = Math.max(0, endAt - Date.now());
@@ -545,8 +545,7 @@
         renderTimer();
   }
   function toggleTimer() { running ? pause() : start(); }
-  timerEl.addEventListener("click", toggleTimer);
-  playBtn.addEventListener("click", function () { unlockAudio(); toggleTimer(); });
+  timerEl.addEventListener("click", function () { unlockAudio(); toggleTimer(); });
 
   function timeUp() {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
