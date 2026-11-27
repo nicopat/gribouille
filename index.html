@@ -150,9 +150,16 @@
 
   /* ---------- Bas ---------- */
   .bottom { display: flex; flex-direction: column; gap: 10px; }
-  .timer-row { display: flex; align-items: center; gap: 10px; }
+  .timer-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
+  .play-btn {
+    flex: none; width: 52px; height: 52px; border: 0; border-radius: 50%;
+    background: var(--surface-2); color: var(--text);
+    display: grid; place-items: center;
+    transition: transform .1s ease, background-color .25s ease;
+  }
+  .play-btn:active { transform: scale(.92); }
   .timer {
-    flex: 1;
+    flex: none;
     cursor: pointer;
     touch-action: manipulation;
     font-size: clamp(56px, 20vw, 88px);
@@ -284,6 +291,7 @@
   <footer class="bottom">
     <div class="timer-row">
       <div class="timer" id="timer" role="timer" aria-live="off">1:00</div>
+      <button class="play-btn" id="playBtn" aria-label="Démarrer"></button>
     </div>
     <button class="btn btn-primary btn-big" id="newWordBtn">Nouveau mot</button>
   </footer>
@@ -428,7 +436,9 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining");
-  var timerEl = $("timer");
+  var timerEl = $("timer"), playBtn = $("playBtn");
+  var ICON_PAUSE = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>';
+  var ICON_PLAY = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>';
 
   /* ================= Mots ================= */
   function remainingWords(lvl) {
@@ -491,6 +501,8 @@
     timerEl.classList.toggle("warn", s <= 10);
     timerEl.classList.toggle("running", running);
     timerEl.classList.toggle("paused", !running && remainingMs > 0 && remainingMs < duration * 1000);
+    playBtn.innerHTML = running ? ICON_PAUSE : ICON_PLAY;
+    playBtn.setAttribute("aria-label", running ? "Pause" : "Démarrer");
   }
   function loop() {
     remainingMs = Math.max(0, endAt - Date.now());
@@ -527,6 +539,7 @@
   }
   function toggleTimer() { running ? pause() : start(); }
   timerEl.addEventListener("click", toggleTimer);
+  playBtn.addEventListener("click", function () { unlockAudio(); toggleTimer(); });
 
   function timeUp() {
     try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 600]); } catch (e) {}
