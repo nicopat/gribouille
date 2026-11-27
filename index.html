@@ -489,7 +489,7 @@
   $("newWordBtn").addEventListener("click", function () { unlockAudio(); newWord(); });
 
   /* ================= Minuteur ================= */
-  var remainingMs = duration * 1000, endAt = 0, tick = null, running = false;
+  var remainingMs = duration * 1000, endAt = 0, tick = null, running = false, lastSec = null;
 
   function fmt(ms) {
     var s = Math.ceil(ms / 1000);
@@ -506,6 +506,12 @@
   }
   function loop() {
     remainingMs = Math.max(0, endAt - Date.now());
+    var sec = Math.ceil(remainingMs / 1000);
+    if (sec !== lastSec) {
+      // Bip à 10 s, puis compte à rebours 5, 4, 3, 2, 1
+      if (lastSec !== null && (sec === 10 || (sec >= 1 && sec <= 5))) tone(sec === 10 ? 660 : 880, 0.12);
+      lastSec = sec;
+    }
     if (remainingMs <= 0) {
       stopTick();
       running = false;
@@ -533,6 +539,7 @@
   }
   function resetTimer() {
     running = false;
+    lastSec = null;
     stopTick();
     remainingMs = duration * 1000;
         renderTimer();
@@ -555,6 +562,23 @@
       if (!audioCtx) audioCtx = new AC();
       if (audioCtx.state === "suspended") audioCtx.resume();
     } catch (e) { audioCtx = null; }
+  }
+  function tone(freq, len) {
+    try {
+      unlockAudio();
+      if (!audioCtx) return;
+      var t = audioCtx.currentTime + 0.02;
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.35, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + len + 0.05);
+    } catch (e) {}
   }
   function beep() {
     try {
