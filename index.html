@@ -120,18 +120,6 @@
     overflow: hidden;
     isolation: isolate;
   }
-  .stage::before, .stage::after {
-    content: ""; position: absolute; z-index: -1; pointer-events: none;
-    transition: background-color .35s ease;
-  }
-  .stage::before {
-    width: 46%; aspect-ratio: 1; top: -14%; right: -12%;
-    background: var(--blob-2); border-radius: 50% 50% 0 0; transform: rotate(-24deg);
-  }
-  .stage::after {
-    width: 38%; aspect-ratio: 1; bottom: -12%; left: -10%;
-    background: var(--blob-1); border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
-  }
   .level-badge {
     position: absolute; top: 14px; left: 0; right: 0;
     font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
@@ -175,6 +163,7 @@
     transition: color .3s ease;
   }
   .timer.warn { color: var(--danger); }
+  .timer.paused { opacity: .45; }
   .timer.warn.running { animation: pulse 1s ease-in-out infinite; }
   @keyframes pulse { 50% { transform: scale(1.06); } }
   .btn {
@@ -295,9 +284,6 @@
   <footer class="bottom">
     <div class="timer-row">
       <div class="timer" id="timer" role="timer" aria-live="off">1:00</div>
-    </div>
-    <div class="controls">
-      <button class="btn btn-accent" id="startBtn">Démarrer</button>
     </div>
     <button class="btn btn-primary btn-big" id="newWordBtn">Nouveau mot</button>
   </footer>
@@ -442,7 +428,7 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining");
-  var timerEl = $("timer"), startBtn = $("startBtn");
+  var timerEl = $("timer");
 
   /* ================= Mots ================= */
   function remainingWords(lvl) {
@@ -504,7 +490,7 @@
     timerEl.textContent = fmt(remainingMs);
     timerEl.classList.toggle("warn", s <= 10);
     timerEl.classList.toggle("running", running);
-    startBtn.textContent = running ? "Pause" : (remainingMs > 0 && remainingMs < duration * 1000 ? "Reprendre" : "Démarrer");
+    timerEl.classList.toggle("paused", !running && remainingMs > 0 && remainingMs < duration * 1000);
   }
   function loop() {
     remainingMs = Math.max(0, endAt - Date.now());
@@ -540,7 +526,6 @@
         renderTimer();
   }
   function toggleTimer() { running ? pause() : start(); }
-  startBtn.addEventListener("click", toggleTimer);
   timerEl.addEventListener("click", toggleTimer);
 
   function timeUp() {
