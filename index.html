@@ -3,68 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6f4ff">
-<meta name="description" content="Pictionary en famille : tire un mot, dessine sur papier, le minuteur tourne.">
-<title>Pictionary en famille</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+<meta name="theme-color" content="#1f1c1c">
+<meta name="description" content="Gribouille, le jeu de dessin en famille : tire un mot, dessine sur papier, le minuteur tourne.">
+<title>Gribouille</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23e8b64a'/></svg>">
 <style>
   :root {
-    --bg: #f6f4ff;
-    --surface: #ffffff;
-    --surface-2: #ece9fb;
-    --text: #1c1838;
-    --muted: #5f5a7d;
-    --primary: #6a3df0;
-    --primary-text: #ffffff;
-    --accent: #ff7a1a;
-    --accent-text: #2a1300;
-    --green: #12a150;
-    --danger: #e0203a;
-    --border: #d9d4f2;
-    --shadow: 0 6px 24px rgba(60, 30, 150, .12);
-    --easy: #12a150;
-    --medium: #ff7a1a;
-    --hard: #e0203a;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #121022;
-      --surface: #1d1a33;
-      --surface-2: #2a2648;
-      --text: #f3f1ff;
-      --muted: #b2acd6;
-      --primary: #9a7bff;
-      --primary-text: #120a2e;
-      --accent: #ffa04d;
-      --accent-text: #2a1300;
-      --green: #3ddc84;
-      --danger: #ff5c70;
-      --border: #3a355e;
-      --shadow: 0 6px 24px rgba(0, 0, 0, .45);
-      --easy: #3ddc84;
-      --medium: #ffa04d;
-      --hard: #ff5c70;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #121022;
-    --surface: #1d1a33;
-    --surface-2: #2a2648;
-    --text: #f3f1ff;
-    --muted: #b2acd6;
-    --primary: #9a7bff;
-    --primary-text: #120a2e;
-    --accent: #ffa04d;
-    --accent-text: #2a1300;
-    --green: #3ddc84;
-    --danger: #ff5c70;
-    --border: #3a355e;
+    --bg: #1f1c1c;
+    --surface: #2a2625;
+    --surface-2: #3a3331;
+    --text: #f7efe9;
+    --muted: #c4b8b1;
+    --primary: #e8b64a;
+    --primary-text: #1f1c1c;
+    --accent: #a9c9b0;
+    --accent-text: #1f1c1c;
+    --green: #8fbf9a;
+    --danger: #ff7d70;
+    --border: #4a423f;
     --shadow: 0 6px 24px rgba(0, 0, 0, .45);
-    --easy: #3ddc84;
-    --medium: #ffa04d;
-    --hard: #ff5c70;
+    --easy: #a9c9b0;
+    --medium: #e8b64a;
+    --hard: #ef9f97;
+    --tab-on: #1f1c1c;
+    --blob-1: #3d302e;
+    --blob-2: #2c3439;
+    --blob-3: #3b3326;
+    --focus: #e48ab0;
     color-scheme: dark;
   }
 
@@ -81,7 +46,7 @@
     -webkit-user-select: none;
   }
   button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
-  button:focus-visible, [role="switch"]:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  button:focus-visible, [role="switch"]:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
   .app {
     height: 100vh;
@@ -120,12 +85,10 @@
     white-space: nowrap;
   }
   .tab:active { transform: scale(.96); }
-  .tab[aria-selected="true"] { color: #fff; box-shadow: var(--shadow); }
+  .tab[aria-selected="true"] { color: var(--tab-on); box-shadow: var(--shadow); }
   .tab[data-level="facile"][aria-selected="true"] { background: var(--easy); }
   .tab[data-level="moyen"][aria-selected="true"] { background: var(--medium); }
   .tab[data-level="difficile"][aria-selected="true"] { background: var(--hard); }
-  :root[data-theme="dark"] .tab[aria-selected="true"] { color: #111; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tab[aria-selected="true"] { color: #111; } }
 
   .icon-btn {
     width: 48px; height: 48px;
@@ -155,6 +118,19 @@
     position: relative;
     transition: background-color .35s ease, box-shadow .35s ease;
     overflow: hidden;
+    isolation: isolate;
+  }
+  .stage::before, .stage::after {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    transition: background-color .35s ease;
+  }
+  .stage::before {
+    width: 46%; aspect-ratio: 1; top: -14%; right: -12%;
+    background: var(--blob-2); border-radius: 50% 50% 0 0; transform: rotate(-24deg);
+  }
+  .stage::after {
+    width: 38%; aspect-ratio: 1; bottom: -12%; left: -10%;
+    background: var(--blob-1); border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
   }
   .level-badge {
     position: absolute; top: 14px; left: 0; right: 0;
@@ -162,7 +138,8 @@
     color: var(--muted);
   }
   .word {
-    font-size: clamp(34px, 11vw, 64px);
+    position: relative;
+    font-size: clamp(46px, 15vw, 104px);
     font-weight: 800;
     line-height: 1.1;
     margin: 0;
@@ -199,10 +176,10 @@
   .timer.warn.running { animation: pulse 1s ease-in-out infinite; }
   @keyframes pulse { 50% { transform: scale(1.06); } }
   .btn {
-    min-height: 56px;
+    min-height: 48px;
     border: 0;
-    border-radius: 16px;
-    font-size: 18px;
+    border-radius: 14px;
+    font-size: 17px;
     font-weight: 700;
     padding: 0 18px;
     transition: background-color .25s ease, color .25s ease, transform .1s ease, opacity .2s;
@@ -211,14 +188,15 @@
   .btn-primary { background: var(--primary); color: var(--primary-text); }
   .btn-accent { background: var(--accent); color: var(--accent-text); }
   .btn-soft { background: var(--surface-2); color: var(--text); }
-  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger { background: var(--danger); color: #1f1c1c; }
+
   .controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
-  .btn-big { min-height: 68px; font-size: 22px; width: 100%; }
+  .btn-big { min-height: 52px; font-size: 19px; width: 100%; }
 
   /* ---------- Feuilles / dialogues ---------- */
   .overlay {
     position: fixed; inset: 0;
-    background: rgba(10, 6, 30, .5);
+    background: rgba(31, 28, 28, .45);
     display: flex; align-items: flex-end; justify-content: center;
     opacity: 0; pointer-events: none;
     transition: opacity .25s ease;
@@ -258,7 +236,7 @@
     font-weight: 700; font-size: 17px; color: var(--muted);
     transition: background-color .25s ease, color .25s ease;
   }
-  .seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-text); }
+  .seg button[aria-pressed="true"] { background: var(--easy); color: var(--tab-on); }
   .switch-row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     min-height: 56px; width: 100%;
@@ -284,8 +262,7 @@
 
   @media (max-height: 600px) {
     .timer { font-size: 52px; }
-    .btn-big { min-height: 56px; font-size: 20px; }
-    .btn { min-height: 50px; }
+    .btn-big { min-height: 48px; font-size: 18px; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -300,15 +277,14 @@
       <button class="tab" role="tab" data-level="moyen" aria-selected="false">Moyen</button>
       <button class="tab" role="tab" data-level="difficile" aria-selected="false">Difficile</button>
     </div>
-    <button class="icon-btn" id="themeBtn" aria-label="Changer de thème">🌙</button>
-    <button class="icon-btn" id="settingsBtn" aria-label="Réglages">⚙️</button>
+    <button class="icon-btn" id="settingsBtn" aria-label="Réglages"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </header>
 
   <main class="stage" id="stage" aria-live="polite">
     <div class="level-badge" id="levelBadge">Facile</div>
     <p class="word placeholder" id="word">Appuie sur « Nouveau mot » pour commencer</p>
     <div class="done-box">
-      <p>🎉 Tous les mots de ce niveau ont été joués !</p>
+      <p>Tous les mots de ce niveau ont été joués !</p>
       <p class="sub">Choisis un autre niveau ou lance une nouvelle partie.</p>
       <button class="btn btn-primary" id="doneNewGame">Nouvelle partie</button>
     </div>
@@ -320,10 +296,10 @@
       <div class="timer" id="timer" role="timer" aria-live="off">1:00</div>
     </div>
     <div class="controls">
-      <button class="btn btn-accent" id="startBtn">▶ Démarrer</button>
-      <button class="btn btn-soft" id="resetBtn">↺ Reset</button>
+      <button class="btn btn-accent" id="startBtn">Démarrer</button>
+      <button class="btn btn-soft" id="resetBtn">Reset</button>
     </div>
-    <button class="btn btn-primary btn-big" id="newWordBtn">🎲 Nouveau mot</button>
+    <button class="btn btn-primary btn-big" id="newWordBtn">Nouveau mot</button>
   </footer>
 </div>
 
@@ -332,7 +308,7 @@
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="sheet-head">
       <h2 id="settingsTitle">Réglages</h2>
-      <button class="icon-btn" id="closeSettings" aria-label="Fermer">✕</button>
+      <button class="icon-btn" id="closeSettings" aria-label="Fermer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div>
       <span class="label">Durée du minuteur</span>
@@ -442,7 +418,7 @@
   var LEVEL_NAMES = { facile: "Facile", moyen: "Moyen", difficile: "Difficile" };
 
   /* ================= Stockage sûr ================= */
-  var KEY = "pictionary-famille:";
+  var KEY = "pictionary-famille:"; // clé conservée pour garder l'historique
   function load(name, fallback) {
     try {
       var raw = localStorage.getItem(KEY + name);
@@ -463,7 +439,6 @@
   var duration = load("duration", 60);
   if ([30, 60, 90].indexOf(duration) === -1) duration = 60;
   var wakeEnabled = load("wake", true) !== false;
-  var forcedTheme = load("theme", null); // "light" | "dark" | null
 
   var $ = function (id) { return document.getElementById(id); };
   var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining"), badgeEl = $("levelBadge");
@@ -529,7 +504,7 @@
     timerEl.textContent = fmt(remainingMs);
     timerEl.classList.toggle("warn", s <= 10);
     timerEl.classList.toggle("running", running);
-    startBtn.textContent = running ? "⏸ Pause" : (remainingMs > 0 && remainingMs < duration * 1000 ? "▶ Reprendre" : "▶ Démarrer");
+    startBtn.textContent = running ? "Pause" : (remainingMs > 0 && remainingMs < duration * 1000 ? "Reprendre" : "Démarrer");
   }
   function loop() {
     remainingMs = Math.max(0, endAt - Date.now());
@@ -687,31 +662,7 @@
   // Certains navigateurs exigent un geste : on réessaie au premier toucher.
   document.addEventListener("pointerdown", requestWake, { passive: true });
 
-  /* ================= Thème ================= */
-  var themeBtn = $("themeBtn");
-  var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-  function isDark() { return forcedTheme ? forcedTheme === "dark" : !!(mq && mq.matches); }
-  function applyTheme() {
-    if (forcedTheme) document.documentElement.setAttribute("data-theme", forcedTheme);
-    else document.documentElement.removeAttribute("data-theme");
-    var dark = isDark();
-    themeBtn.textContent = dark ? "☀️" : "🌙";
-    themeBtn.setAttribute("aria-label", dark ? "Passer en mode clair" : "Passer en mode sombre");
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", dark ? "#121022" : "#f6f4ff");
-  }
-  themeBtn.addEventListener("click", function () {
-    forcedTheme = isDark() ? "light" : "dark";
-    save("theme", forcedTheme);
-    applyTheme();
-  });
-  if (mq) {
-    var onChange = function () { if (!forcedTheme) applyTheme(); };
-    if (mq.addEventListener) mq.addEventListener("change", onChange); else if (mq.addListener) mq.addListener(onChange);
-  }
-
   /* ================= Démarrage ================= */
-  applyTheme();
   renderDuration();
   renderWake();
   setLevel(level);
