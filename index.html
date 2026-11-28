@@ -140,6 +140,17 @@
     position: absolute; bottom: 12px; left: 0; right: 0;
     font-size: 14px; color: var(--muted);
   }
+  .all-play {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    display: none;
+    background: var(--primary); color: #1f1c1c;
+    font-weight: 800; font-size: 17px; white-space: nowrap;
+    padding: 10px 18px; border-radius: 999px;
+  }
+  .stage.all { box-shadow: 0 0 0 3px var(--primary), var(--shadow); }
+  .stage.all .all-play { display: block; animation: pop-pill .4s cubic-bezier(.2, 1.4, .4, 1); }
+  .stage.done .all-play { display: none; }
+  @keyframes pop-pill { from { transform: translateX(-50%) scale(.6); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
   .done-box { display: none; flex-direction: column; align-items: center; gap: 14px; }
   .done-box p { margin: 0; font-size: 20px; font-weight: 700; }
   .done-box .sub { font-size: 16px; font-weight: 400; color: var(--muted); }
@@ -269,6 +280,7 @@
   </header>
 
   <main class="stage" id="stage" aria-live="polite">
+    <div class="all-play" id="allPlay">Tout le monde devine !</div>
     <p class="word placeholder" id="word">Appuie sur « Nouveau mot » pour commencer</p>
     <div class="done-box">
       <p>Tous les mots de ce niveau ont été joués !</p>
@@ -422,6 +434,10 @@
   var duration = load("duration", 60);
   if ([30, 60, 90].indexOf(duration) === -1) duration = 60;
   var wakeEnabled = load("wake", true) !== false;
+  // Manche « Tout le monde devine » : une fois toutes les 6 à 10 pioches, au hasard
+  function randTarget() { return 6 + Math.floor(Math.random() * 5); }
+  var allPlay = load("allPlay", null);
+  if (!allPlay || typeof allPlay.count !== "number" || typeof allPlay.target !== "number") allPlay = { count: 0, target: randTarget() };
 
   var $ = function (id) { return document.getElementById(id); };
   var wordEl = $("word"), stageEl = $("stage"), remainingEl = $("remaining");
@@ -437,7 +453,7 @@
     remainingEl.textContent = n + (n > 1 ? " mots restants" : " mot restant");
   }
   function showPlaceholder() {
-    stageEl.classList.remove("done");
+    stageEl.classList.remove("done", "all");
     wordEl.className = "word placeholder";
     wordEl.style.fontSize = "";
     wordEl.textContent = "Appuie sur « Nouveau mot » pour commencer";
@@ -447,6 +463,7 @@
     resetTimer();
     if (pool.length === 0) {
       stageEl.classList.add("done");
+      stageEl.classList.remove("all");
       updateRemaining();
       return;
     }
@@ -457,6 +474,11 @@
     wordEl.className = "word";
     void wordEl.offsetWidth; // relance l'animation
     wordEl.className = "word pop";
+    allPlay.count++;
+    var isAll = allPlay.count >= allPlay.target;
+    if (isAll) allPlay = { count: 0, target: randTarget() };
+    save("allPlay", allPlay);
+    stageEl.classList.toggle("all", isAll);
     wordEl.textContent = w.charAt(0).toUpperCase() + w.slice(1);
     fitWord();
     start();
@@ -466,7 +488,7 @@
   function fitWord() {
     wordEl.style.fontSize = "";
     var size = parseFloat(getComputedStyle(wordEl).fontSize);
-    var maxW = stageEl.clientWidth - 32, maxH = stageEl.clientHeight - 60;
+    var maxW = stageEl.clientWidth - 32, maxH = stageEl.clientHeight - (stageEl.classList.contains("all") ? 130 : 60);
     while (size > 22 && (wordEl.scrollWidth > maxW || wordEl.offsetHeight > maxH)) {
       size -= 2;
       wordEl.style.fontSize = size + "px";
